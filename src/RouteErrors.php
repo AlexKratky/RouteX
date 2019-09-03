@@ -9,6 +9,7 @@
  * @license http://opensource.org/licenses/mit-license.php MIT License
  * @description Contains custom errors. Part of panx-framework.
  */
+namespace AlexKratky;
 
 interface RouteErrors {
     /**
