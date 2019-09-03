@@ -9,6 +9,9 @@
  * @license http://opensource.org/licenses/mit-license.php MIT License
  * @description Contains function to work with routes. Part of panx-framework.
  */
+namespace AlexKratky;
+
+use URL;
 
 abstract class RouteAction {
 

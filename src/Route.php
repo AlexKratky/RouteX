@@ -11,7 +11,9 @@
  */
 namespace AlexKratky;
 
-class Route extends AlexKratky\RouteAction implements AlexKratky\RouteErrors {
+use URL;
+
+class Route extends RouteAction implements RouteErrors {
     /**
      * @var array The array of routes.
      */
