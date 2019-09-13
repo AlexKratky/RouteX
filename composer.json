@@ -10,8 +10,8 @@
         }
     ],
     "require": {
-        "php": ">=5.6",
-        "alexkratky/url": "^0.1.0"
+        "php": ">=7.0",
+        "alexkratky/url": "^0.2.0"
     },
     "autoload": {
         "files": ["src/RouteAction.php", "src/RouteErrors.php", "src/Route.php"]
