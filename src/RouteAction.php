@@ -14,7 +14,7 @@ declare (strict_types = 1);
 
 namespace AlexKratky;
 
-use URL;
+use AlexKratky\URL;
 
 abstract class RouteAction
 {
