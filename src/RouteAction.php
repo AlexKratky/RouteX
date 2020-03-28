@@ -9,15 +9,13 @@
  * @license http://opensource.org/licenses/mit-license.php MIT License
  * @description Contains function to work with routes. Part of panx-framework.
  */
-
-declare (strict_types = 1);
+declare(strict_types = 1);
 
 namespace AlexKratky;
 
 use AlexKratky\URL;
 
-abstract class RouteAction
-{
+abstract class RouteAction {
     /**
      * @var string
      */
@@ -38,43 +36,40 @@ abstract class RouteAction
      * Returns file(s) or function which responds to $SEARCH_ROUTE.
      * Supports wildcards:
      *  + : Mean one elements, eg: /post/+/edit -> match with /post/1/edit, /post/2/edit ...
-     *  * : Mean one or more element, eg: /post/* -> match with /post/1, /post/1/edit ...
+     *  * : Mean one or more element, eg: /post/* -> match with /post/1, /post/1/edit ... 
      *  {VARIABLE} : Mean one element (Same as +), but the value will be saved and can be accessed by getValue()
      * @param string $SEARCH_ROUTE The searched route.
      * @return function|array|string Returns file(s) or function which responds to $SEARCH_ROUTE.
      */
-    public static function search(string $SEARCH_ROUTE)
-    {
+    public static function search(string $SEARCH_ROUTE) {
         $C = new URL();
         $L = $C->getLink();
         if (count($L) > 2 && $L[1] == "api") {
             //e.g. $API_ROUTES["v2"]
-            if (isset(Route::$API_ROUTES[$L[2]])) {
+            if(isset(Route::$API_ROUTES[$L[2]])) {
                 if (!empty(Route::$API_MIDDLEWARES[$L[2]])) {
                     foreach (Route::$API_MIDDLEWARES[$L[2]] as $MIDDLEWARE) {
                         require $_SERVER['DOCUMENT_ROOT'] . "/../app/middlewares/" . $MIDDLEWARE . ".php";
                         if (!$MIDDLEWARE::handle()) {
-                            if (method_exists($MIDDLEWARE, "error")) {
+                            if(method_exists($MIDDLEWARE, "error"))
                                 return $MIDDLEWARE::error();
-                            }
-
                             return Route::ERROR_MIDDLEWARE;
                         }
                     }
                 }
-                if (!empty(Route::$API_ENDPOINTS[$L[2]])) {
-                    if (!Route::$API_ENDPOINTS[$L[2]]->request($C)) {
+                if(!empty(Route::$API_ENDPOINTS[$L[2]])) {
+                    if(!Route::$API_ENDPOINTS[$L[2]]->request($C)) {
                         echo json(Route::$API_ENDPOINTS[$L[2]]->error());
                         exit();
                     }
                 }
-                foreach (Route::$API_ROUTES[$L[2]] as $API_ROUTE) {
-                    $x = new URL("/api/" . $L[2] . "/" . trim($API_ROUTE[0], "/"), false);
-                    if (count($x->getLink()) > count($GLOBALS["request"]->getUrl()->getLink())) {
+                foreach(Route::$API_ROUTES[$L[2]] as $API_ROUTE) {
+                    $x = new URL("/api/".$L[2]."/".trim($API_ROUTE[0], "/"), false);
+                    if(count($x->getLink()) > count($GLOBALS["request"]->getUrl()->getLink())) {
                         continue;
                     }
-                    $t = self::test(array("/api/" . $L[2] . "/" . trim($API_ROUTE[0], "/"), $API_ROUTE[1] ?? null), self::TYPE_API_ROUTE);
-                    if ($t !== false) {
+                    $t = self::test(array("/api/".$L[2]."/".trim($API_ROUTE[0], "/"), $API_ROUTE[1] ?? null), self::TYPE_API_ROUTE);
+                    if($t !== false) {
                         if (!empty($API_ROUTE[2])) {
                             if (!in_array($_SERVER["REQUEST_METHOD"], $API_ROUTE[2])) {
                                 return Route::ERROR_BAD_REQUEST;
@@ -104,11 +99,11 @@ abstract class RouteAction
                 $CURRENT = strtolower($_SERVER["REQUEST_URI"]);
             }
             $x = new URL($ROUTE . "", false);
-            if (count($x->getLink()) > count($GLOBALS["request"]->getUrl()->getLink())) {
+            if(count($x->getLink()) > count($GLOBALS["request"]->getUrl()->getLink())) {
                 continue;
             }
-            $t = self::test(array($ROUTE . "", $VALUE ?? null), self::TYPE_STANDARD_ROUTE, $CURRENT);
-            if ($t !== false) {
+            $t = self::test(array($ROUTE."", $VALUE ?? null), self::TYPE_STANDARD_ROUTE, $CURRENT);
+            if($t !== false) {
                 if (!empty(Route::$LOCK[$ROUTE])) {
                     if (!in_array($_SERVER["REQUEST_METHOD"], Route::$LOCK[$ROUTE])) {
                         return Route::ERROR_BAD_REQUEST;
@@ -137,33 +132,50 @@ abstract class RouteAction
                         }
                     }
                 }
+                if (in_array($ROUTE, Route::$ROUTES_LOCAL_ONLY)) {
+                    $local = array(
+                        '127.0.0.1',
+                        '::1'
+                    );
+                    if(!empty($GLOBALS["CONFIG"]["basic"]["APP_ACCESS_LOCALHOST_ROUTES_FROM_IP"])) {
+                        if(($GLOBALS["CONFIG"]["basic"]["APP_ACCESS_LOCALHOST_ROUTES_FROM_IP"]) == "disable") {
+                            return Route::ERROR_FORBIDDEN;
+                        }
+                        array_push($local, $GLOBALS["CONFIG"]["basic"]["APP_ACCESS_LOCALHOST_ROUTES_FROM_IP"]);
+                    }
+                    if(!in_array($_SERVER['REMOTE_ADDR'], $local)){
+                        return Route::ERROR_FORBIDDEN;
+                    }
+                }
+                if (!empty(Route::$TITLES[$ROUTE])) {
+                    Route::$TITLE = Route::$TITLES[$ROUTE];
+                }
                 return $VALUE ?? null;
             }
-
+            
         }
         return (isset(Route::$ROUTES[$SEARCH_ROUTE]) ? Route::$ROUTES[$SEARCH_ROUTE] : Route::ERROR_NOT_FOUND);
     }
     /**
      * The function will return template file(s)/function without limitation of middlewares etc.
      */
-    public static function searchWithNoLimits()
-    {
+    public static function searchWithNoLimits() {
         $C = new URL();
         $L = $C->getLink();
         if (count($L) > 2 && $L[1] == "api") {
             //e.g. $API_ROUTES["v2"]
-            if (isset(Route::$API_ROUTES[$L[2]])) {
-                foreach (Route::$API_ROUTES[$L[2]] as $API_ROUTE) {
-                    $x = new URL("/api/" . $L[2] . "/" . trim($API_ROUTE[0], "/"), false);
-                    if (count($x->getLink()) > count($C->getLink())) {
+            if(isset(Route::$API_ROUTES[$L[2]])) {
+                foreach(Route::$API_ROUTES[$L[2]] as $API_ROUTE) {
+                    $x = new URL("/api/".$L[2]."/".trim($API_ROUTE[0], "/"), false);
+                    if(count($x->getLink()) > count($C->getLink())) {
                         continue;
                     }
-                    $t = self::test(array("/api/" . $L[2] . "/" . trim($API_ROUTE[0], "/"), $API_ROUTE[1]), self::TYPE_API_ROUTE);
-                    if ($t !== false) {
+                    $t = self::test(array("/api/".$L[2]."/".trim($API_ROUTE[0], "/"), $API_ROUTE[1]), self::TYPE_API_ROUTE);
+                    if($t !== false) {
                         /*if (!empty($API_ROUTE[2])) {
-                        if (!in_array($_SERVER["REQUEST_METHOD"], $API_ROUTE[2])) {
-                        return Route::ERROR_BAD_REQUEST;
-                        }
+                            if (!in_array($_SERVER["REQUEST_METHOD"], $API_ROUTE[2])) {
+                                return Route::ERROR_BAD_REQUEST;
+                            }
                         }*/
                         return $API_ROUTE[1];
                     }
@@ -177,24 +189,23 @@ abstract class RouteAction
      * @param string|null $route The URI, if sets to null, then will use the current URI.
      * @return string The route coresponding to URI.
      */
-    public static function convertRoute(?string $route = null): string
-    {
+    public static function convertRoute(?string $route = null): string {
         foreach (Route::$ROUTES as $ROUTE => $VALUE) {
             $CURRENT = new URL($route);
             if (isset($GLOBALS["CONFIG"]["basic"]["APP_ROUTES_CASE_SENSITIVE"]) && $GLOBALS["CONFIG"]["basic"]["APP_ROUTES_CASE_SENSITIVE"] !== "1") {
                 $ROUTE = strtolower($ROUTE);
             } else {
-
+                
             }
-            $x = new URL($ROUTE . "", false);
-            if (count($x->getLink()) > count($CURRENT->getLink())) {
+            $x = new URL($ROUTE."", false);
+            if(count($x->getLink()) > count($CURRENT->getLink())) {
                 continue;
             }
-            $t = self::test(array($ROUTE . "", $VALUE), self::TYPE_NO_LIMIT, $route);
-            if ($t !== false) {
+            $t = self::test(array($ROUTE."", $VALUE), self::TYPE_NO_LIMIT, $route);
+            if($t !== false) {
                 return $ROUTE;
             }
-
+            
         }
         return $CURRENT->getString();
     }
@@ -205,15 +216,11 @@ abstract class RouteAction
      * @param string $get The GET parameters (eg. ?x=x). Write like this x=true:y=false:debug => ?x=true&y=false&debug
      * @return string url.
      */
-    public static function alias(string $alias, ?string $params = null, ?string $get = null): string
-    {
-        if (!isset(Route::$ALIASES[$alias])) {
-            return null;
-        }
-
+    public static function alias(string $alias, ?string $params = null, ?string $get = null) {
+        if(!isset(Route::$ALIASES[$alias])) return null;
         $r = new URL(Route::$ALIASES[$alias], false);
         $l = $r->getLink();
-        if ($params === null) {
+        if($params === null) {
             $params = array();
         } else {
             $params = explode(":", $params);
@@ -221,30 +228,30 @@ abstract class RouteAction
         $params_index = 0;
         $link = "/";
         //params
-        for ($i = 1; $i < count($l); $i++) {
-            if ($l[$i] == "<controller>" || $l[$i] == "<action>" || $l[$i] == "+") {
-                (isset($params[$params_index]) ?: error(400));
+        for($i = 1; $i < count($l); $i++) {
+            if($l[$i] == "<controller>" || $l[$i] == "<action>" || $l[$i] == "+") {
+                (isset($params[$params_index]) ? : error(400));
                 $link .= (strpos($params[$params_index], "=") !== false ? explode("=", $params[$params_index], 2)[1] : $params[$params_index]) . "/";
                 $params_index++;
                 continue;
             }
             //parse array []
-            if ($l[$i] == "*") {
+            if($l[$i] == "*") {
                 (isset($params[$params_index]) ?: error(400));
                 $x = (strpos($params[$params_index], "=") !== false ? explode("=", $params[$params_index], 2)[1] : $params[$params_index]);
                 $x = trim($x, "[]");
                 $x = preg_replace('/\s+/', '', $x);
-                $x = explode(",", $x);
+                $x = explode(",",$x);
                 foreach ($x as $v) {
-                    $link .= $v . "/";
+                    $link .= $v."/";
                 }
                 $params_index++;
                 continue;
             }
             //regex
             preg_match("/{(.+?)\s?((\[(.+?)\])|(\#(.+?)))?}/", $l[$i], $matches);
-            if (count($matches) > 0) {
-                (isset($params[$params_index]) ?: error(400));
+            if(count($matches) > 0) {
+                (isset($params[$params_index]) ? : error(400));
                 $link .= (strpos($params[$params_index], "=") !== false ? explode("=", $params[$params_index], 2)[1] : $params[$params_index]) . "/";
                 $params_index++;
                 continue;
@@ -254,11 +261,11 @@ abstract class RouteAction
             }
         }
         //get params
-        if ($get !== null) {
+        if($get !== null) {
             $link .= "?";
             $add_ampersand = false;
             $get = explode(":", $get);
-            foreach ($get as $get_param) {
+            foreach($get as $get_param) {
                 $link .= ($add_ampersand ? "&" : "") . $get_param;
                 $add_ampersand = true;
             }
@@ -270,10 +277,9 @@ abstract class RouteAction
      * @param array $ROUTE [0] => The tested Route, e.g. '/edit/{ID}'; [1] => The route value
      * @param string $TYPE The type of Route - use RouteAction::TYPE_API_ROUTE, RouteAction::TYPE_STANDARD_ROUTE or RouteAction::TYPE_NO_LIMIT.
      * @param string $CURRENT The URI, if sets to null, then it will use current URI.
-     * @return array|false Returns false if the Route do not match or array with route info: (bool) 'api'; (string) 'route'; (string|array|function) 'action';
+     * @return array|false Returns false if the Route do not match or array with route info: (bool) 'api'; (string) 'route'; (string|array|function) 'action'; 
      */
-    protected static function test(array $ROUTE, string $TYPE, $CURRENT = null)
-    {
+    protected static function test(array $ROUTE, string $TYPE, $CURRENT = null) {
         $CURRENT = ($CURRENT === null ? new URL() : new URL($CURRENT, false));
         $CURRENT = $CURRENT->getLink();
         $x = new URL($ROUTE[0], false);
@@ -281,14 +287,12 @@ abstract class RouteAction
         $match = true;
         for ($i = 0; $i < count($x); $i++) {
             if ($x[$i] == "*") {
-                if ($TYPE !== self::TYPE_NO_LIMIT) {
+                if($TYPE !== self::TYPE_NO_LIMIT)
                     Route::$CURRENT_ROUTE_INFO = array(
                         "api" => ($TYPE === self::TYPE_API_ROUTE),
                         "route" => $ROUTE[0],
                         "action" => $ROUTE[1],
                     );
-                }
-
                 return array(
                     "api" => ($TYPE === self::TYPE_API_ROUTE),
                     "route" => $ROUTE[0],
@@ -303,45 +307,35 @@ abstract class RouteAction
                 if (!empty($matches[4])) {
                     preg_match("/" . $matches[4] . "/", $CURRENT[$i], $m);
                     if (count($m) > 0) {
-                        if ($TYPE !== self::TYPE_NO_LIMIT) {
+                        if($TYPE !== self::TYPE_NO_LIMIT)
                             Route::$VALUES[$matches[1]] = $CURRENT[$i];
-                        }
-
                         continue;
                     }
                 } elseif (isset($matches[6])) {
                     $v = $matches[6];
                     $r = $v($CURRENT[$i]);
                     if ($r == true) {
-                        if ($TYPE !== self::TYPE_NO_LIMIT) {
+                        if($TYPE !== self::TYPE_NO_LIMIT)                
                             Route::$VALUES[$matches[1]] = $CURRENT[$i];
-                        }
-
                         continue;
                     }
                 } else {
-                    if ($TYPE !== self::TYPE_NO_LIMIT) {
+                    if($TYPE !== self::TYPE_NO_LIMIT)                    
                         Route::$VALUES[$matches[1]] = $CURRENT[$i];
-                    }
-
                     continue;
                 }
             }
             if (strtolower($x[$i]) == "<controller>") {
                 if (ctype_alnum($CURRENT[$i])) {
-                    if ($TYPE !== self::TYPE_NO_LIMIT) {
+                    if($TYPE !== self::TYPE_NO_LIMIT)                    
                         Route::$ROUTE_CONTROLLER = $CURRENT[$i];
-                    }
-
                     continue;
                 }
             }
             if (strtolower($x[$i]) == "<action>") {
                 if (ctype_alnum($CURRENT[$i])) {
-                    if ($TYPE !== self::TYPE_NO_LIMIT) {
+                    if($TYPE !== self::TYPE_NO_LIMIT)                    
                         Route::$ROUTE_ACTION = $CURRENT[$i];
-                    }
-
                     continue;
                 }
             }
@@ -351,14 +345,12 @@ abstract class RouteAction
             }
         }
         if ($match && count($x) == count($CURRENT)) {
-            if ($TYPE !== self::TYPE_NO_LIMIT) {
+            if($TYPE !== self::TYPE_NO_LIMIT)
                 Route::$CURRENT_ROUTE_INFO = array(
                     "api" => true,
                     "route" => $ROUTE[0],
                     "action" => $ROUTE[1],
                 );
-            }
-
             return array(
                 "api" => ($TYPE === self::TYPE_API_ROUTE),
                 "route" => $ROUTE[0],
