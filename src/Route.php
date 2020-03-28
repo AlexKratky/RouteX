@@ -5,7 +5,7 @@
  * @link https://panx.eu/docs/                          Documentation
  * @link https://github.com/AlexKratky/panx-framework/  Github Repository
  * @author Alex Kratky <info@alexkratky.cz>
- * @copyright Copyright (c) 2019 Alex Kratky
+ * @copyright Copyright (c) 2020 Alex Kratky
  * @license http://opensource.org/licenses/mit-license.php MIT License
  * @description Router engine. Part of panx-framework.
  */
@@ -206,7 +206,8 @@ class Route extends RouteAction implements RouteErrors {
      */
     public static function getController(?string $ROUTE = null): ?string {
         if($ROUTE === null) {
-            $ROUTE = $GLOBALS["request"]->getUrl()->getString();
+            $URL = new URL();
+            $ROUTE = $URL->getString();
             $ROUTE = self::convertRoute($ROUTE);
         }
 
@@ -489,4 +490,5 @@ class Route extends RouteAction implements RouteErrors {
 
         return $data;
     }
+    
 }

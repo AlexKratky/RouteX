@@ -14,6 +14,14 @@
         "alexkratky/url": "^0.3.0"
     },
     "autoload": {
-        "files": ["src/RouteAction.php", "src/RouteErrors.php", "src/Route.php"]
+        "files": [
+            "src/RouteAction.php",
+            "src/RouteErrors.php",
+            "src/Route.php",
+            "src/MissingActionException.php",
+            "src/MissingControllerException.php",
+            "src/MissingActionArgumentException.php",
+            "src/RouteHandler.php"
+        ]
     }
 }

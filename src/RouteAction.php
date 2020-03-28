@@ -5,7 +5,7 @@
  * @link https://panx.eu/docs/                          Documentation
  * @link https://github.com/AlexKratky/panx-framework/  Github Repository
  * @author Alex Kratky <info@alexkratky.cz>
- * @copyright Copyright (c) 2019 Alex Kratky
+ * @copyright Copyright (c) 2020 Alex Kratky
  * @license http://opensource.org/licenses/mit-license.php MIT License
  * @description Contains function to work with routes. Part of panx-framework.
  */
@@ -32,6 +32,7 @@ abstract class RouteAction {
      * The regex for testing paramaters, e.g. '{NAME#Validator::validateUsername}
      */
     private const URL_REGEX = "/{(.+?)\s?((\[(.+?)\])|(\#(.+?)))?}/";
+
     /**
      * Returns file(s) or function which responds to $SEARCH_ROUTE.
      * Supports wildcards:
@@ -65,7 +66,7 @@ abstract class RouteAction {
                 }
                 foreach(Route::$API_ROUTES[$L[2]] as $API_ROUTE) {
                     $x = new URL("/api/".$L[2]."/".trim($API_ROUTE[0], "/"), false);
-                    if(count($x->getLink()) > count($GLOBALS["request"]->getUrl()->getLink())) {
+                    if(count($x->getLink()) > count($C->getLink())) {
                         continue;
                     }
                     $t = self::test(array("/api/".$L[2]."/".trim($API_ROUTE[0], "/"), $API_ROUTE[1] ?? null), self::TYPE_API_ROUTE);
@@ -99,7 +100,8 @@ abstract class RouteAction {
                 $CURRENT = strtolower($_SERVER["REQUEST_URI"]);
             }
             $x = new URL($ROUTE . "", false);
-            if(count($x->getLink()) > count($GLOBALS["request"]->getUrl()->getLink())) {
+            $URL = new URL();
+            if(count($x->getLink()) > count($URL->getLink())) {
                 continue;
             }
             $t = self::test(array($ROUTE."", $VALUE ?? null), self::TYPE_STANDARD_ROUTE, $CURRENT);
@@ -360,4 +362,5 @@ abstract class RouteAction {
         // Route do not match
         return false;
     }
+    
 }
