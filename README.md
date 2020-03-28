@@ -10,6 +10,40 @@ The fast routing system. Easy to use.
 
 This documentation is for RouteX with [panx-framework](https://panx.eu/). The [panx-framework](https://panx.eu/) will autoload files etc., without that, you need to write own handler. But the usage is the same with or without [panx-framework](https://panx.eu/).
 
+RouteX is default routing system of [panx-framework](https://panx.eu/). The documentation for RouteX is available [here](https://panx.dev/docs/routes) (Some things can be different, because the documentation is written for use with [panx-framework](https://panx.eu/). 
+
+### Running RouteX without panx-framework
+
+```php
+require 'vendor/autoload.php';
+
+use AlexKratky\URL;
+use AlexKratky\Route;
+use AlexKratky\RouteHandler;
+
+Route::setError(Route::ERROR_NOT_FOUND, "404.php"); // only if you want custom error 404 page
+Route::set('/', 'home.php'); // set routes - URI: '/', template file: 'home.php'
+
+$URL = new URL(); // Creates a new instance of URL object
+Route::setMiddlewaresPath($_SERVER['DOCUMENT_ROOT'] . '/middlewares/'); // only if you will use middlewares
+Route::setControllersPath($_SERVER['DOCUMENT_ROOT'] . '/controllers/'); // optional (faster improvement)
+$template_files = Route::search($URL->getString()); // Searches in all routes and find the right template file
+
+$rh = new RouteHandler($_SERVER['DOCUMENT_ROOT'] . '/template/', $_SERVER['DOCUMENT_ROOT'] . '/controllers/', $_SERVER['DOCUMENT_ROOT'] . '/handlers/'); // *
+$rh->setHandlers([
+    'latte' => 'LatteHandler'
+]); // Sets custom handler for *.latte extension
+$rh->handle($template_files); // includes all files or execute function
+```
+*Creates a new instance of RouteHandler
+
+- RouteHandler will require all files provided by Route::search()
+- The first parameter is `template` directory
+- The second parameter is `controllers` directory
+- The third parameter is `handlers` directory
+
+*Handlers are needed for all extension that is not .\*php file. You can find more about handlers [here]( https://panx.dev/docs/handlers ).*
+
 ### Syntax
 
 Syntax of routes:
@@ -30,9 +64,9 @@ But in URI you can use parameters too, for example `/post/{ID}/edit` have same m
 
 In `/routes/` directory is also file called `default.php` containing default routes. In default routes are routes to error pages. For example Error 404. When you need to set route for error code (403, 404), you need to call function `Route::setError` instead of `Route::set`. Example syntax: 
 
-```php
+ ```php
 Route::setError(404, "default/errors/404.php");
-```
+ ```
 
 ### Using wildcards
 
@@ -54,6 +88,30 @@ Route::set("/", "home.php");
 
 The result will be different. It will display `test.php` to all users, whatever user request. So if user tries to request `/`, framework will display `test.php` instead of `home.php`. So in this case, the second route is useless, and should be deleted to keep route file clear.
 
+### < action > and < controller > wildcards
+These wildcards will automatically include controller and call the contoller method specified by action. For example, you will have following route
+```php
+ Route::set("/admin/<controller>/<action>", "form.php");
+```
+and the user will visit with this URI: `/admin/auth/login/`. This will include AuthController and call the contoller's method specified by action - login() (AuthContoller::login()).
+
+### Parameters with regex rule
+You can limit the route parameter by regular expression. For example, you want to use parameter {ID}, which should be just number, so you can do it by this:
+
+```php
+Route::set("example/{ID[^[0-9]*$]}", "id.php");
+```
+
+If you enter something different then just ID, it will try to find other route, otherwise display 404.
+
+### Parameters with Validator rule
+
+You can limit the route parameter by Validator rule. For example, you want to use parameter {NAME}, which should be valid name, so you can do it by this:
+
+```php
+Route::set("/{NAME#Validator::validateUsername}");
+```
+
 ### Including multiple files
 
 If you want to include more template files, then you need to pass array, for example:
@@ -61,6 +119,10 @@ If you want to include more template files, then you need to pass array, for exa
 ```php
 Route::set("/docs/intro", ["header.php", "intro.php", "footer.php"]);
 ```
+
+### No files
+
+You can leave second parameter (files or function) empty, so no files will be required, only if you set up the Controller, then will be called.
 
 ### Routes with redirect
 
@@ -77,12 +139,12 @@ Route::set("/docs/intro", ["header.php", "intro.php", "footer.php"]);
 
 The second parameter of route can be anonymous function (Like in redirect).
 
-```php
+``````php
 Route::set("/dumpServerVariable", function() {
     echo 'This route will dump() $_SERVER variable';
     dump($_SERVER); // Function from panx
 });
-```
+``````
 
 ### Locking route to method
 
@@ -131,9 +193,9 @@ Why you should use API routes instead of classic routes? If the first element in
 
 You can setup controller using setController() function:
 
-```php
+ ```php
 Route::set('/login', 'auth/login.latte')->setController("AuthController");
-```
+ ```
 
 To get more info about controller, see [Controllers](https://panx.eu/docs/controllers)
 
@@ -161,13 +223,55 @@ Route::setApiEndpoint("v3", new API("v3"));
 
 To get more info about API endpoints, see [API Endpoints](https://panx.eu/docs/api-endpoints)
 
+### API Extended syntax
+
+Because API route have many parameters, it is recommended to use following syntax:
+
+```php
+Route::apiGroup("v5", array(
+    array(
+        "route" => "test/{name}/{action}",
+        "files" => null,
+        "lock" => null,
+        "required_params" => null,
+        "action" => "login",
+        "alias" => "test"
+    ),
+));
+```
+
+
+
+### Aliases
+
+You can set up alias to each route. This is useful for your template files, because you will not write the absolute routes, e.g. '/login', but you will use the alias. If you using Latte, then you can do it by n:link, e.g. n:link="login" and when you change the route in route file, you do not need to edit the template file. In n:link, you can also include parameters for route and GET method. So if your route have wildcard, you can do it like this:
+
+```php+HTML
+<?php
+Route::set("/test/of/route/<action>/{NAME}/{ID}/*", function() {echo "Hello";});
+?>
+
+<a n:link="test, 'action=akce:jmeno:identifikator:hvezdicka=[1,10,20,30]', 'id=10:remember=true:test'">macro test</a>
+
+<!-- which will create -->
+<a href="/test/of/route/akce/jmeno/identifikator/1/10/20/30/?id=10&remember=true&test">macro test</a>
+```
+
+To set alias for API route, you need as 6th parameter ([5]) or by extended syntax.
+
+### Required parameters
+
+You can set required parameters using ->setRequiredParameters(array $get, array $post);
+
+Where the $get and $post  are arrays containing the names of the inputs.
+
 
 
 ## Other functions of Route class
 
 ### Route::searchWithNoLimits()
 
-This function will return template file(s)/function without limitation of middlewares etc.
+This function will return template file(s)/function without limitation of middlewares etc. Works only for API routes. Used in API endpoints & caching routes.
 
 ### Route::convertRoute($route = null)
 

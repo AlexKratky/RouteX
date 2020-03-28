@@ -101,6 +101,14 @@ class Route extends RouteAction implements RouteErrors {
      * @var string The string containing the Route.
      */
     public $ROUTE;
+    /**
+     * @var string|null Default path to the controllers.
+     */
+    protected static $CONTROLLERS_PATH = null;
+    /**
+     * @var string|null Default path to the controllers.
+     */
+    protected static $MIDDLEWARES_PATH = null;
 
     /**
      * Creates a new instance of Route object containing the route.
@@ -162,7 +170,7 @@ class Route extends RouteAction implements RouteErrors {
             self::$API_ROUTES[$VERSION] = [];
         }
         foreach ($ROUTES as $ROUTE) {
-            if(!isAssoc($ROUTE)) {
+            if(!self::isAssoc($ROUTE)) {
                 array_push(self::$API_ROUTES[$VERSION], $ROUTE);
             } else {
                 $r = array(
@@ -221,7 +229,7 @@ class Route extends RouteAction implements RouteErrors {
             }
             if($url->getLink()[1] != "api") {
                 $default = ucfirst(strtolower($url->getLink()[1])) . "Controller";
-                if(file_exists($_SERVER['DOCUMENT_ROOT']."/../app/controllers/$default.php")) {
+                if(file_exists((self::$CONTROLLERS_PATH ?? $_SERVER['DOCUMENT_ROOT'] . "/../app/controllers/") . "$default.php")) {
                     return $default;
                 }
                 return null;
@@ -305,7 +313,7 @@ class Route extends RouteAction implements RouteErrors {
      * @return string|array|function The handler of error, it can be single file, multiple files using array or function. You should use single file only.
      */
     public static function searchError($ERROR_CODE) {
-        return self::$ERRORS[$ERROR_CODE];
+        return self::$ERRORS[$ERROR_CODE] ?? null;
     }
 
     /**
@@ -409,6 +417,20 @@ class Route extends RouteAction implements RouteErrors {
     }
 
     /**
+     * Sets path to the Middlewares' directory.
+     */
+    public static function setMiddlewaresPath($path) {
+        self::$MIDDLEWARES_PATH = $path;
+    }
+
+    /**
+     * Sets path to the Controllers' directory.
+     */
+    public static function setControllersPath($path) {
+        self::$CONTROLLERS_PATH = $path;
+    }
+
+    /**
      * Returns array containing all routes (TYPE, URI/CODE, ACTION, LOCK, MIDDLEWARES).
      * @return array The array of all loaded routes.
      */
@@ -489,6 +511,11 @@ class Route extends RouteAction implements RouteErrors {
 
 
         return $data;
+    }
+
+    private static function isAssoc(array $arr): bool {
+        if (array() === $arr) return false;
+        return array_keys($arr) !== range(0, count($arr) - 1);
     }
     
 }

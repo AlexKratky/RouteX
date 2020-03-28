@@ -12,7 +12,7 @@
 
 namespace AlexKratky;
 
-class MissingActionException extends Exception
+class MissingActionException extends \Exception
 {
     public function __construct($controller_and_action) {
         parent::__construct("Missing Controller's action. (" . $controller_and_action[0] . "#" . $controller_and_action[1]. ")", 0, null);

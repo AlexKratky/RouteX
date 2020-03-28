@@ -34,21 +34,23 @@ class RouteHandler {
      */
     public function __construct($template_directory = null, $controllers_directory = null, $handlers_directory = null) {
         $this->setHandlers();
-        $this->template_directory = ($template_directory == null ? $_SERVER['DOCUMENT_ROOT'] . "/../template/" : $template_directory);
-        $this->controllers_directory = ($controllers_directory == null ? $_SERVER['DOCUMENT_ROOT'] . "/../app/controllers/" : $controllers_directory);
-        $this->handlers_directory = ($handlers_directory == null ? $_SERVER['DOCUMENT_ROOT'] . "/../app/handlers/" : $handlers_directory);
+        $this->template_directory = ($template_directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../template/");
+        $this->controllers_directory = ($controllers_directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../app/controllers/");
+        $this->handlers_directory = ($handlers_directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../app/handlers/");
     }
 
     /**
      * @param mixed $template_files
      */
     public function handle($template_files) {
-        if (is_callable($template_files)) {
-            $template_files();
-            return;
-        }
         $this->template_files = $template_files;
         $include = $this->checkForErrors($template_files);
+
+        if (is_callable($this->template_files)) {
+            $x = $this->template_files;
+            $x();
+            return;
+        }
 
         if($include && $this->template_files !== null) {
             if (!is_array($this->template_files)) {
@@ -80,7 +82,7 @@ class RouteHandler {
                         $this->callAction($controller, $action);
                     }
 
-                    $h::handle($template_files[$i]);
+                    $h::handle($this->template_files[$i]);
                 }
             }
         } else {
@@ -89,7 +91,7 @@ class RouteHandler {
             $action = $this->getControllerAndAction()[1];
             if($controller !== null) {
                 $controller = $this->requireController($controller);
-                $controller::main($h);
+                $controller::main(null);
                 $this->callAction($controller, $action);
             }
         }
@@ -119,7 +121,8 @@ class RouteHandler {
     }
 
     private function checkForErrors($template_files): bool {
-        $routeErrors = new ReflectionClass(RouteErrors::Class);
+        if(is_callable($template_files)) return true;
+        $routeErrors = new \ReflectionClass(RouteErrors::Class);
         $routeErrors = $routeErrors->getConstants();
         foreach ($routeErrors as $routeError => $value) {
             if($template_files == $value) {
@@ -139,7 +142,7 @@ class RouteHandler {
     private function getControllerAndAction(): array {
         $controller = Route::getController();
         $action = null;
-        if ($controller === null) {
+        if ($controller !== null && $controller === null) {
             $controller = Route::getRouteController();
         }
         if(strpos($controller, "#") !== false) {
@@ -178,7 +181,7 @@ class RouteHandler {
     private function callAction(string $controller, ?string $action) {
         if ($action !== null) {
             if (method_exists($controller, $action)) {
-                call_user_func_array(array($controller, $action), $this->getArrayOfParameters(new ReflectionMethod($controller, $action)));
+                call_user_func_array(array($controller, $action), $this->getArrayOfParameters(new \ReflectionMethod($controller, $action)));
             } else {
                 throw new MissingActionException([$controller, $action]);
             }

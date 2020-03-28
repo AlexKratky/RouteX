@@ -12,7 +12,7 @@
 
 namespace AlexKratky;
 
-class MissingActionArgumentException extends Exception
+class MissingActionArgumentException extends \Exception
 {
     public function __construct($argument) {
         parent::__construct("Missing action's argument. (" . $argument . ")", 0, null);

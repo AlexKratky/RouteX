@@ -50,7 +50,7 @@ abstract class RouteAction {
             if(isset(Route::$API_ROUTES[$L[2]])) {
                 if (!empty(Route::$API_MIDDLEWARES[$L[2]])) {
                     foreach (Route::$API_MIDDLEWARES[$L[2]] as $MIDDLEWARE) {
-                        require $_SERVER['DOCUMENT_ROOT'] . "/../app/middlewares/" . $MIDDLEWARE . ".php";
+                        require (Route::$MIDDLEWARES_PATH ?? $_SERVER['DOCUMENT_ROOT'] . "/../app/middlewares/") . $MIDDLEWARE . ".php";
                         if (!$MIDDLEWARE::handle()) {
                             if(method_exists($MIDDLEWARE, "error"))
                                 return $MIDDLEWARE::error();
@@ -113,7 +113,7 @@ abstract class RouteAction {
                 }
                 if (!empty(Route::$MIDDLEWARES[$ROUTE])) {
                     foreach (Route::$MIDDLEWARES[$ROUTE] as $MIDDLEWARE) {
-                        require $_SERVER['DOCUMENT_ROOT'] . "/../app/middlewares/" . $MIDDLEWARE . ".php";
+                        require (Route::$MIDDLEWARES_PATH ?? $_SERVER['DOCUMENT_ROOT'] . "/../app/middlewares/") . $MIDDLEWARE . ".php";
                         if (!$MIDDLEWARE::handle()) {
                             if (method_exists($MIDDLEWARE, "error")) {
                                 return $MIDDLEWARE::error();

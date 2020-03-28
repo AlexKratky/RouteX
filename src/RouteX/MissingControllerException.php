@@ -12,7 +12,7 @@
 
 namespace AlexKratky;
 
-class MissingControllerException extends Exception
+class MissingControllerException extends \Exception
 {
     public function __construct($controller) {
         parent::__construct("Missing Controller file '{$controller}'", 0, null);
