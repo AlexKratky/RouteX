@@ -145,7 +145,7 @@ class RouteHandler {
         if ($controller !== null && $controller === null) {
             $controller = Route::getRouteController();
         }
-        if(strpos($controller, "#") !== false) {
+        if($controller !== null && strpos($controller, "#") !== false) {
             $c = explode("#", $controller, 2);
             $controller = $c[0];
             $action = $c[1];  
