@@ -1,13 +1,13 @@
 <?php
 /**
  * @name MissingControllerException.php
- * @link https://alexkratky.cz                          Author website
+ * @link https://alexkratky.com                         Author website
  * @link https://panx.eu/docs/                          Documentation
- * @link https://github.com/AlexKratky/panx-framework/  Github Repository
- * @author Alex Kratky <info@alexkratky.cz>
+ * @link https://github.com/AlexKratky/RouteX/          Github Repository
+ * @author Alex Kratky <alex@panx.dev>
  * @copyright Copyright (c) 2020 Alex Kratky
  * @license http://opensource.org/licenses/mit-license.php MIT License
- * @description Loads the files from Route. Part of panx-framework.
+ * @description Missing Controller Exception. Part of panx-framework.
  */
 
 namespace AlexKratky;

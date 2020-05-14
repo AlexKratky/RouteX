@@ -1,10 +1,10 @@
 <?php
 /**
  * @name RouteAction.php
- * @link https://alexkratky.cz                          Author website
+ * @link https://alexkratky.com                         Author website
  * @link https://panx.eu/docs/                          Documentation
- * @link https://github.com/AlexKratky/panx-framework/  Github Repository
- * @author Alex Kratky <info@alexkratky.cz>
+ * @link https://github.com/AlexKratky/RouteX/          Github Repository
+ * @author Alex Kratky <alex@panx.dev>
  * @copyright Copyright (c) 2020 Alex Kratky
  * @license http://opensource.org/licenses/mit-license.php MIT License
  * @description Contains function to work with routes. Part of panx-framework.
@@ -60,7 +60,7 @@ abstract class RouteAction {
                 }
                 if(!empty(Route::$API_ENDPOINTS[$L[2]])) {
                     if(!Route::$API_ENDPOINTS[$L[2]]->request($C)) {
-                        echo json(Route::$API_ENDPOINTS[$L[2]]->error());
+                        echo Route::$API_ENDPOINTS[$L[2]]->error();
                         exit();
                     }
                 }
